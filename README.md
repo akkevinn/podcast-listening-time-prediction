@@ -110,7 +110,7 @@ data['host_guest_ratio'] = Host_Popularity / (Guest_Popularity + 1e-6)
 data['host_guest_diff'] = Host_Popularity - Guest_Popularity
 ```
 
-####Sentiment-Weighted Metrics:
+#### Sentiment-Weighted Metrics:
 ```python
 data['host_pop_sentiment'] = Host_Popularity * sentiment_encoded
 data['guest_pop_sentiment'] = Guest_Popularity * sentiment_encoded
