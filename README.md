@@ -41,7 +41,7 @@ The model's performance will be evaluated using **Root Mean Squared Error (RMSE)
     - Save the results to a CSV file for submission.
 
 ## Results
-RMSE = 12.59510
+RMSE = 12.57999
 
 ## Data Preprocessing
 
@@ -116,6 +116,22 @@ data['host_pop_sentiment'] = Host_Popularity * sentiment_encoded
 data['guest_pop_sentiment'] = Guest_Popularity * sentiment_encoded
 ```
 
+#### High Popularity Flags:
+```python
+data['is_high_host_popularity'] = (data['Host_Popularity_percentage'] > 60).astype(int)
+data['is_high_guest_popularity'] = (data['Guest_Popularity_percentage'] > 60).astype(int)
+```
+
+#### Ads per Minute Metrics:
+```python
+data['ad_per_minute'] = data['Number_of_Ads'] / ( data['Episode_Length_minutes'] + 1e-6)
+```
+
+#### Long Episode Flag:
+```python
+data['is_long_episode'] = (data['Episode_Length_minutes'] > 60).astype(int)
+```
+
 ## Model Training
 
 ### 1. Feature Set
@@ -131,6 +147,10 @@ features = [
     'host_guest_diff',
     'host_pop_sentiment',
     'guest_pop_sentiment',
+    'is_high_host_popularity',
+    'is_high_guest_popularity',
+    'ad_per_minute',
+    'is_long_episode',
     'Podcast_Name'
 ] + [col for col in data.columns if col.startswith('time_')] \
     + [col for col in data.columns if col.startswith('genre_')]
@@ -140,7 +160,7 @@ features = [
 ```python
 model = xgb.XGBRegressor(
     objective='reg:squarederror',
-    n_estimators=1000,
+    n_estimators=2000,
     learning_rate=0.02,
     max_depth=15,
     subsample=0.8,
@@ -172,7 +192,7 @@ for (train_idx, val_idx) in gkf.split(X, y):
     # Train model
     model = xgb.XGBRegressor(
         objective='reg:squarederror',
-        n_estimators=1000,
+        n_estimators=2000,
         learning_rate=0.02,
         max_depth=15,
         subsample=0.8,
@@ -195,7 +215,7 @@ print(f"\nAverage RMSE: {np.mean(rmse_scores):.2f} ± {np.std(rmse_scores):.2f}"
 
 ### 4. Final Training
 ```python
-# Final model training (RMSE: 12.59510)
+# Final model training (RMSE: 12.57999)
 encoder = TargetEncoder(cols=['Podcast_Name'], smoothing=10)
 X_encoded = encoder.fit_transform(X, y)
 X_encoded = X_encoded.drop(columns=['Podcast_Name'])
@@ -203,7 +223,7 @@ X_test_encoded = encoder.transform(X_test).drop(columns=['Podcast_Name'])
 
 final_model = xgb.XGBRegressor(
     objective='reg:squarederror',
-    n_estimators=1000,
+    n_estimators=2000,
     learning_rate=0.02,
     max_depth=15,
     subsample=0.8,
@@ -219,5 +239,5 @@ submission_data = pd.DataFrame({
     'id': test_data['id'],
     'Listening_Time_minutes': test_preds
 })
-submission_data.to_csv('final_submission_v13.csv', index=False)
+submission_data.to_csv('final_submission_v14.csv', index=False)
 ```
